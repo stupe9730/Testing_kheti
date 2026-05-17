@@ -40,7 +40,7 @@ async function startServer() {
   // CORS
   const allowedOrigins = [
     "http://localhost:5173",
-    "https://kheti-frontend.onrender.com",
+    "https://testing-kheti-1.onrender.com",
   ];
 
   app.use(

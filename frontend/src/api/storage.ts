@@ -14,11 +14,10 @@ import {
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-// २. 'api' नावाचा Axios Instance तयार करा
 const api = axios.create({
   baseURL: `${BACKEND_URL}/api`,
+  withCredentials: true,
 });
-
 const normalize = (data: any): any => {
   if (!data || typeof data !== "object") return data;
 
