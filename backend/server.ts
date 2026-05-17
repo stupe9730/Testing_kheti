@@ -1,9 +1,10 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
-import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
+
 import { connectDB } from "./config/db";
+
 import farmRoutes from "./routes/farmRoutes";
 import tractorRoutes from "./routes/tractorRoutes";
 import khatRoutes from "./routes/khatRoutes";
@@ -16,6 +17,7 @@ import dairyExpenseRoutes from "./routes/dairyExpenseRoutes";
 import dairyRoutes from "./routes/dairyRoutes";
 import otherExpenseRoutes from "./routes/otherExpenseRoutes";
 import authRoutes from "./routes/authRoutes";
+
 import Farm from "./models/Farm";
 import TractorEntry from "./models/TractorEntry";
 import KhatEntry from "./models/KhatEntry";
@@ -24,64 +26,70 @@ import AushadEntry from "./models/AushadEntry";
 import WorkerEntry from "./models/WorkerEntry";
 import HarvestEntry from "./models/HarvestEntry";
 import OtherExpense from "./models/OtherExpense";
-import mongoose from "mongoose";
 
 dotenv.config();
 
 async function startServer() {
   const app = express();
+
   const PORT = process.env.PORT || 3000;
 
-  // Connect to Database
+  // Database Connection
   await connectDB();
 
-  // Middleware
+  // CORS
   const allowedOrigins = [
     "http://localhost:5173",
-    // "https://kheti-hisab.vercel.app",
+    "https://kheti-hisab.vercel.app",
+    "https://testing-kheti.onrender.com",
   ];
+
   app.use(
     cors({
       origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        if (!origin) {
           return callback(null, true);
-        } else {
-          return callback(
-            new Error("CORS नियम: या वेबसाईटला डेटा मिळवण्याची परवानगी नाही!"),
-            false,
-          );
         }
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        return callback(null, false);
       },
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // ज्या मेथड्स चालू ठेवायच्या आहेत
-      allowedHeaders: ["Content-Type", "Authorization"], // टोकन पाठवण्यासाठी लागणारे हेडर्स
+
+      credentials: true,
+
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+
+      allowedHeaders: ["Content-Type", "Authorization"],
     }),
   );
+
+  // Middleware
   app.use(express.json());
 
-  // Check DB Connection Middleware
-  app.use("/api", (req, res, next) => {
-    if (mongoose.connection.readyState !== 1) {
-      console.warn(
-        `[${new Date().toISOString()}] Database not connected. State: ${mongoose.connection.readyState}`,
-      );
-      return res.status(503).json({
-        error: "Database not connected",
-        message:
-          "The server is having trouble connecting to the database. Please check your MONGODB_URI.",
-      });
-    }
-    next();
+  // Health Route
+  app.get("/", (req, res) => {
+    res.send("Backend Running Successfully 🚀");
   });
 
-  // Health check route
   app.get("/api/health", (req, res) => {
     res.json({
       status: "ok",
       db: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-      env: process.env.NODE_ENV || "development",
     });
+  });
+
+  // DB Check Middleware
+  app.use("/api", (req, res, next) => {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        error: "Database not connected",
+      });
+    }
+
+    next();
   });
 
   // API Routes
@@ -98,7 +106,7 @@ async function startServer() {
   app.use("/api/other-expenses", otherExpenseRoutes);
   app.use("/api/auth", authRoutes);
 
-  // Summary Route (Cross-collection)
+  // Summary Route
   app.get("/api/summary", async (req, res) => {
     try {
       const farms = await Farm.find();
@@ -109,6 +117,7 @@ async function startServer() {
       const workerEntries = await WorkerEntry.find();
       const harvestEntries = await HarvestEntry.find();
       const otherExpenses = await OtherExpense.find();
+
       res.json({
         farms,
         tractorEntries,
@@ -120,69 +129,26 @@ async function startServer() {
         otherExpenses,
       });
     } catch (error: any) {
-      console.error("Summary fetch error:", error.message);
-      res.status(500).json({ error: "Failed to fetch summary" });
+      console.error(error.message);
+
+      res.status(500).json({
+        error: "Failed to fetch summary",
+      });
     }
   });
 
   // Global Error Handler
-  app.use(
-    (
-      err: any,
-      req: express.Request,
-      res: express.Response,
-      next: express.NextFunction,
-    ) => {
-      console.error(err.stack);
-      res.status(500).json({ error: "Something went wrong!" });
-    },
-  );
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error(err.stack);
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: {
-        middlewareMode: true,
-        host: "0.0.0.0",
-        port: 3000,
-      },
-      appType: "spa",
-      root: path.resolve(process.cwd(), "frontend"),
+    res.status(500).json({
+      error: "Something went wrong!",
     });
-    app.use(vite.middlewares);
+  });
 
-    // SPA Fallback for development
-    app.use("*", async (req, res, next) => {
-      const url = req.originalUrl;
-      if (url.startsWith("/api")) return next();
-
-      try {
-        const frontendPath = path.resolve(process.cwd(), "frontend");
-        const indexHtmlPath = path.join(frontendPath, "index.html");
-
-        const fs = await import("fs/promises");
-        let template = await fs.readFile(indexHtmlPath, "utf-8");
-        template = await vite.transformIndexHtml(url, template);
-
-        res.status(200).set({ "Content-Type": "text/html" }).end(template);
-      } catch (e: any) {
-        console.error("Vite SPA Fallback error:", e.message);
-        vite.ssrFixStacktrace(e as Error);
-        next(e);
-      }
-    });
-  } else {
-    const distPath = path.join(process.cwd(), "frontend/dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
-
+  // Start Server
   app.listen(PORT, "0.0.0.0", () => {
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    }
+    console.log(`🚀 Server running on PORT ${PORT}`);
   });
 }
 
