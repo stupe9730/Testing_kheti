@@ -1,21 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Trash2, Sprout, Calendar, Edit3, X, Loader2 } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../redux';
-import { fetchFarms, addFarm, updateFarm, deleteFarm } from '../redux/slices/farmSlice';
-import { Farm } from '../types';
-import { motion, AnimatePresence } from 'motion/react';
-import { toast } from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Plus,
+  Trash2,
+  Sprout,
+  Calendar,
+  Edit3,
+  X,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../redux";
+import {
+  fetchFarms,
+  addFarm,
+  updateFarm,
+  deleteFarm,
+} from "../redux/slices/farmSlice";
+import { Farm } from "../types";
+import { motion, AnimatePresence } from "motion/react";
+import { toast } from "react-hot-toast";
 
 export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
-  const { farms, loading, error } = useSelector((state: RootState) => state.farm);
-  
+  const { farms, loading, error } = useSelector(
+    (state: RootState) => state.farm,
+  );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const [isAdding, setIsAdding] = useState(false);
   const [editingFarm, setEditingFarm] = useState<Farm | null>(null);
   const [farmToDelete, setFarmToDelete] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: '', year: new Date().getFullYear().toString() });
+  const [formData, setFormData] = useState({
+    name: "",
+    year: new Date().getFullYear().toString(),
+  });
 
   useEffect(() => {
     dispatch(fetchFarms());
@@ -28,17 +51,30 @@ export default function HomeScreen() {
       return;
     }
 
-    const toastId = toast.loading(editingFarm ? "Updating farm..." : "Saving farm...");
+    const toastId = toast.loading(
+      editingFarm ? "Updating farm..." : "Saving farm...",
+    );
     try {
       if (editingFarm) {
-        await dispatch(updateFarm({ id: editingFarm.id, name: formData.name, year: formData.year })).unwrap();
+        await dispatch(
+          updateFarm({
+            id: editingFarm.id,
+            name: formData.name,
+            year: formData.year,
+          }),
+        ).unwrap();
         setEditingFarm(null);
       } else {
-        await dispatch(addFarm({ name: formData.name, year: formData.year })).unwrap();
+        await dispatch(
+          addFarm({ name: formData.name, year: formData.year }),
+        ).unwrap();
       }
-      setFormData({ name: '', year: new Date().getFullYear().toString() });
+      setFormData({ name: "", year: new Date().getFullYear().toString() });
       setIsAdding(false);
-      toast.success(editingFarm ? "Updated successfully ✏️" : "Farm saved successfully ✅", { id: toastId });
+      toast.success(
+        editingFarm ? "Updated successfully ✏️" : "Farm saved successfully ✅",
+        { id: toastId },
+      );
     } catch (err: any) {
       toast.error(err.message || "Failed to save farm ❌", { id: toastId });
     }
@@ -61,7 +97,7 @@ export default function HomeScreen() {
 
   const confirmDelete = async () => {
     if (!farmToDelete) return;
-    
+
     const toastId = toast.loading("Deleting farm...");
     try {
       await dispatch(deleteFarm(farmToDelete)).unwrap();
@@ -73,11 +109,24 @@ export default function HomeScreen() {
     }
   };
 
+  const totalPages = Math.ceil(farms.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentFarms = farms.slice(indexOfFirstItem, indexOfLastItem);
+
+  useEffect(() => {
+    if (currentPage > 1 && currentPage > totalPages) {
+      setCurrentPage(Math.max(1, totalPages));
+    }
+  }, [farms.length, currentPage, totalPages]);
+
   if (loading && farms.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 p-4 animate-pulse">
         <Loader2 className="animate-spin text-green-600 mb-4" size={40} />
-        <p className="text-slate-500 dark:text-slate-400 font-bold">Loading your farms...</p>
+        <p className="text-slate-500 dark:text-slate-400 font-bold">
+          Loading your farms...
+        </p>
       </div>
     );
   }
@@ -85,8 +134,14 @@ export default function HomeScreen() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto p-4 pb-20">
       <div className="flex flex-col items-center justify-center pt-2">
-        <img src="/app_logo.svg" alt="Logo" className="h-20 w-20 object-contain drop-shadow-md mb-2" />
-        <h2 className="text-2xl font-black text-foreground tracking-tight">Kheti Hisab</h2>
+        <img
+          src="/app_logo.svg"
+          alt="Logo"
+          className="h-20 w-20 object-contain drop-shadow-md mb-2"
+        />
+        <h2 className="text-2xl font-black text-foreground tracking-tight">
+          Kheti Hisab
+        </h2>
       </div>
 
       {error && (
@@ -96,11 +151,16 @@ export default function HomeScreen() {
       )}
 
       <div className="flex justify-between items-center px-1">
-        <h3 className="text-lg font-bold text-muted-foreground uppercase tracking-widest text-[10px]">My Management Areas</h3>
+        <h3 className="text-lg font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
+          My Management Areas
+        </h3>
         <button
           onClick={() => {
             setEditingFarm(null);
-            setFormData({ name: '', year: new Date().getFullYear().toString() });
+            setFormData({
+              name: "",
+              year: new Date().getFullYear().toString(),
+            });
             setIsAdding(true);
           }}
           className="bg-primary text-white p-2 rounded-full shadow-lg h-10 w-10 flex items-center justify-center hover:brightness-110 active:scale-95 transition-all"
@@ -127,11 +187,15 @@ export default function HomeScreen() {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
               <div className="flex justify-between items-center px-1">
                 <div className="text-left">
-                  <h4 className="font-black text-foreground uppercase tracking-tight text-xl">{editingFarm ? 'Edit Farm' : 'New Management Area'}</h4>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Setup your field details</p>
+                  <h4 className="font-black text-foreground uppercase tracking-tight text-xl">
+                    {editingFarm ? "Edit Farm" : "New Management Area"}
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                    Setup your field details
+                  </p>
                 </div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => {
                     setIsAdding(false);
                     setEditingFarm(null);
@@ -143,33 +207,43 @@ export default function HomeScreen() {
               </div>
               <div className="space-y-5">
                 <div className="space-y-2 text-left">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 text-left tracking-widest">Farm / Field Name</label>
+                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 text-left tracking-widest">
+                    Farm / Field Name
+                  </label>
                   <input
                     autoFocus
                     type="text"
                     placeholder="e.g., North Field"
                     className="w-full bg-card-secondary border border-border rounded-2xl px-5 py-4 focus:bg-card focus:ring-4 focus:ring-primary/10 border-border focus:border-primary transition-all shadow-inner outline-none text-foreground placeholder:text-muted-foreground/30 font-bold"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2 text-left">
-                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 text-left tracking-widest">Season Year (Hagam)</label>
+                  <label className="text-[10px] font-black uppercase text-muted-foreground ml-2 text-left tracking-widest">
+                    Season Year (Hagam)
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g., 2024-25"
                     className="w-full bg-card-secondary border border-border rounded-2xl px-5 py-4 focus:bg-card focus:ring-4 focus:ring-primary/10 border-border focus:border-primary transition-all shadow-inner outline-none text-foreground placeholder:text-muted-foreground/30 font-bold font-mono"
                     value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, year: e.target.value })
+                    }
                   />
                 </div>
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="bg-primary text-white w-full py-5 rounded-[2rem] font-black shadow-xl shadow-primary/20 active:scale-95 transition-all text-[11px] uppercase tracking-[0.2em] mt-2 group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform" />
-                <span className="relative z-10">{editingFarm ? 'Update Farm' : 'Create Farm Area'}</span>
+                <span className="relative z-10">
+                  {editingFarm ? "Update Farm" : "Create Farm Area"}
+                </span>
               </button>
             </motion.form>
           </motion.div>
@@ -193,9 +267,12 @@ export default function HomeScreen() {
               <div className="bg-error/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-error">
                 <Trash2 size={32} />
               </div>
-              <h4 className="text-xl font-black text-foreground mb-2">Are you sure?</h4>
+              <h4 className="text-xl font-black text-foreground mb-2">
+                Are you sure?
+              </h4>
               <p className="text-muted-foreground font-bold mb-8 text-sm">
-                This will delete the farm and all related records (tractor, khat, workers, etc.) permanently.
+                This will delete the farm and all related records (tractor,
+                khat, workers, etc.) permanently.
               </p>
               <div className="flex gap-3">
                 <button
@@ -220,11 +297,13 @@ export default function HomeScreen() {
         <div className="text-center py-20 text-muted-foreground bg-card rounded-[3rem] border-2 border-dashed border-border mx-1">
           <Sprout size={48} className="mx-auto mb-4 opacity-10" />
           <p className="font-black text-lg">No farms found</p>
-          <p className="text-xs uppercase font-bold tracking-wider mt-1 px-10">Tap the + button to add your first field.</p>
+          <p className="text-xs uppercase font-bold tracking-wider mt-1 px-10">
+            Tap the + button to add your first field.
+          </p>
         </div>
       ) : (
         <div className="grid gap-4">
-          {farms.map((farm) => (
+          {currentFarms.map((farm) => (
             <Link key={farm.id} to={`/farm/${farm.id}`}>
               <motion.div
                 whileHover={{ scale: 1.01, translateY: -2 }}
@@ -237,7 +316,9 @@ export default function HomeScreen() {
                     <Sprout size={28} strokeWidth={2.5} />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-black text-xl text-foreground tracking-tight text-left group-hover:text-primary transition-colors">{farm.name}</h3>
+                    <h3 className="font-black text-xl text-foreground tracking-tight text-left group-hover:text-primary transition-colors">
+                      {farm.name}
+                    </h3>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-black uppercase tracking-widest text-left font-mono opacity-60">
                       <Calendar size={12} strokeWidth={3} />
                       {farm.year}
@@ -261,6 +342,51 @@ export default function HomeScreen() {
               </motion.div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-8 pb-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+              currentPage === 1
+                ? "bg-card-secondary text-muted-foreground/30 border border-border/50 cursor-not-allowed"
+                : "bg-card-secondary text-muted-foreground hover:text-primary hover:border-primary/20 border border-border shadow-sm active:scale-90"
+            }`}
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
+              Page
+            </span>
+            <span className="text-sm font-black text-foreground bg-card-secondary border border-border px-3 py-1 rounded-lg shadow-inner">
+              {currentPage}
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
+              of
+            </span>
+            <span className="text-sm font-black text-muted-foreground">
+              {totalPages}
+            </span>
+          </div>
+
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+            }
+            disabled={currentPage === totalPages}
+            className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+              currentPage === totalPages
+                ? "bg-card-secondary text-muted-foreground/30 border border-border/50 cursor-not-allowed"
+                : "bg-card-secondary text-muted-foreground hover:text-primary hover:border-primary/20 border border-border shadow-sm active:scale-90"
+            }`}
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
       )}
     </div>
