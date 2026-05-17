@@ -10,6 +10,9 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ListFilter,
+  SortAsc,
+  SortDesc,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../redux";
@@ -31,6 +34,10 @@ export default function HomeScreen() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "az" | "za">(
+    "newest",
+  );
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingFarm, setEditingFarm] = useState<Farm | null>(null);
@@ -109,16 +116,46 @@ export default function HomeScreen() {
     }
   };
 
-  const totalPages = Math.ceil(farms.length / itemsPerPage);
+  const filteredAndSortedFarms = React.useMemo(() => {
+    let result = [...farms];
+
+    // Sort
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case "az":
+          return a.name.localeCompare(b.name);
+        case "za":
+          return b.name.localeCompare(a.name);
+        case "oldest":
+          return (
+            new Date(a.createdAt || 0).getTime() -
+            new Date(b.createdAt || 0).getTime()
+          );
+        case "newest":
+        default:
+          return (
+            new Date(b.createdAt || 0).getTime() -
+            new Date(a.createdAt || 0).getTime()
+          );
+      }
+    });
+
+    return result;
+  }, [farms, sortBy]);
+
+  const totalPages = Math.ceil(filteredAndSortedFarms.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentFarms = farms.slice(indexOfFirstItem, indexOfLastItem);
+  const currentFarms = filteredAndSortedFarms.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
 
   useEffect(() => {
     if (currentPage > 1 && currentPage > totalPages) {
       setCurrentPage(Math.max(1, totalPages));
     }
-  }, [farms.length, currentPage, totalPages]);
+  }, [filteredAndSortedFarms.length, currentPage, totalPages]);
 
   if (loading && farms.length === 0) {
     return (
@@ -154,6 +191,32 @@ export default function HomeScreen() {
         <h3 className="text-lg font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
           My Management Areas
         </h3>
+      </div>
+
+      <div className="flex items-center gap-3 px-1">
+        <div className="relative flex-1 flex items-center gap-2 bg-card border border-border rounded-2xl px-4 py-3 shadow-sm">
+          <ListFilter size={18} className="text-muted-foreground" />
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as any);
+              setCurrentPage(1);
+            }}
+            className="flex-1 bg-transparent text-sm font-bold focus:outline-none cursor-pointer appearance-none pr-6"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="az">A to Z</option>
+            <option value="za">Z to A</option>
+          </select>
+          <div className="absolute right-4 pointer-events-none text-muted-foreground">
+            {sortBy === "az" || sortBy === "za" ? (
+              <SortAsc size={14} />
+            ) : (
+              <SortDesc size={14} />
+            )}
+          </div>
+        </div>
         <button
           onClick={() => {
             setEditingFarm(null);
@@ -163,7 +226,7 @@ export default function HomeScreen() {
             });
             setIsAdding(true);
           }}
-          className="bg-primary text-white p-2 rounded-full shadow-lg h-10 w-10 flex items-center justify-center hover:brightness-110 active:scale-95 transition-all"
+          className="bg-primary text-white shrink-0 rounded-2xl shadow-lg h-[46px] w-[46px] flex items-center justify-center hover:brightness-110 active:scale-95 transition-all"
         >
           <Plus size={20} />
         </button>
@@ -293,7 +356,7 @@ export default function HomeScreen() {
         )}
       </AnimatePresence>
 
-      {farms.length === 0 ? (
+      {filteredAndSortedFarms.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground bg-card rounded-[3rem] border-2 border-dashed border-border mx-1">
           <Sprout size={48} className="mx-auto mb-4 opacity-10" />
           <p className="font-black text-lg">No farms found</p>
