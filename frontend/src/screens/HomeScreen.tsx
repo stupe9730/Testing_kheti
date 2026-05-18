@@ -378,8 +378,8 @@ export default function HomeScreen() {
                   <div className="bg-card-secondary p-3 rounded-2xl text-primary border border-border/50 group-hover:border-primary/20 transition-all group-hover:bg-primary/5 group-hover:scale-110 shrink-0">
                     <Sprout size={22} strokeWidth={2.5} />
                   </div>
-                  <div className="text-left min-w-0">
-                    <h3 className="font-black text-xl text-foreground tracking-tight text-left group-hover:text-primary transition-colors truncate">
+                  <div className="text-left min-w-0 flex-1">
+                    <h3 className="font-black text-xl text-foreground tracking-tight text-left group-hover:text-primary transition-colors line-clamp-2 break-words leading-tight mb-1">
                       {farm.name}
                     </h3>
                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-black uppercase tracking-widest text-left font-mono opacity-60">
