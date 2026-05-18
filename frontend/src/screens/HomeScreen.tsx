@@ -365,39 +365,39 @@ export default function HomeScreen() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {currentFarms.map((farm) => (
             <Link key={farm.id} to={`/farm/${farm.id}`}>
               <motion.div
                 whileHover={{ scale: 1.01, translateY: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="premium-card p-6 flex justify-between items-center group overflow-hidden relative"
+                className="premium-card p-4 flex justify-between items-center group overflow-hidden relative"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-all" />
-                <div className="flex items-center gap-5 relative z-10">
-                  <div className="bg-card-secondary p-4 rounded-2xl text-primary border border-border/50 group-hover:border-primary/20 transition-all group-hover:bg-primary/5 group-hover:scale-110">
-                    <Sprout size={28} strokeWidth={2.5} />
+                <div className="flex items-center gap-4 relative z-10 flex-1 min-w-0">
+                  <div className="bg-card-secondary p-3 rounded-2xl text-primary border border-border/50 group-hover:border-primary/20 transition-all group-hover:bg-primary/5 group-hover:scale-110 shrink-0">
+                    <Sprout size={22} strokeWidth={2.5} />
                   </div>
-                  <div className="text-left">
-                    <h3 className="font-black text-xl text-foreground tracking-tight text-left group-hover:text-primary transition-colors">
+                  <div className="text-left min-w-0">
+                    <h3 className="font-black text-xl text-foreground tracking-tight text-left group-hover:text-primary transition-colors truncate">
                       {farm.name}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-black uppercase tracking-widest text-left font-mono opacity-60">
-                      <Calendar size={12} strokeWidth={3} />
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-black uppercase tracking-widest text-left font-mono opacity-60">
+                      <Calendar size={10} strokeWidth={3} />
                       {farm.year}
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2 relative z-10 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300">
+                <div className="flex gap-2 relative z-10 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 ml-2">
                   <button
                     onClick={(e) => handleEdit(farm, e)}
-                    className="p-3.5 bg-card-secondary border border-border text-muted-foreground/60 hover:text-accent hover:bg-accent/5 hover:border-accent/20 rounded-xl transition-all active:scale-90"
+                    className="p-2.5 bg-card-secondary border border-border text-muted-foreground/60 hover:text-accent hover:bg-accent/5 hover:border-accent/20 rounded-xl transition-all active:scale-90"
                   >
                     <Edit3 size={16} />
                   </button>
                   <button
                     onClick={(e) => handleDeleteClick(farm.id, e)}
-                    className="p-3.5 bg-card-secondary border border-border text-muted-foreground/60 hover:text-error hover:bg-error/5 hover:border-error/20 rounded-xl transition-all active:scale-90"
+                    className="p-2.5 bg-card-secondary border border-border text-muted-foreground/60 hover:text-error hover:bg-error/5 hover:border-error/20 rounded-xl transition-all active:scale-90"
                   >
                     <Trash2 size={16} />
                   </button>
