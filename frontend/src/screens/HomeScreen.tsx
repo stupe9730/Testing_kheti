@@ -177,7 +177,7 @@ export default function HomeScreen() {
           className="h-20 w-20 object-contain drop-shadow-md mb-2"
         />
         <h2 className="text-2xl font-black text-foreground tracking-tight">
-          Kheti Hisab
+          Sheti Hishob
         </h2>
       </div>
 

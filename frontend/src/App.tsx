@@ -81,9 +81,9 @@ const AppContent = () => {
               />
               <div className="flex flex-col items-start">
                 <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">
-                  Kheti
+                  Sheti
                   <span className="text-green-600 dark:text-green-500">
-                    Hisab
+                    Hishob
                   </span>
                 </h1>
                 <p className="text-[7.5px] font-black uppercase tracking-[0.25em] text-muted-foreground mt-1.5 flex items-center gap-1 opacity-60">
