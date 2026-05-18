@@ -71,40 +71,42 @@ const AppContent = () => {
       <Toaster position="top-center" reverseOrder={false} />
 
       {!isAuthPage && isAuthenticated && (
-        <header className="bg-card/80 backdrop-blur-md text-foreground p-4 border-b border-border sticky top-0 z-40 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <img
-              src="/app_logo.svg"
-              alt="Logo"
-              className="h-10 w-10 object-contain rounded-lg shadow-sm"
-            />
-            <div className="flex flex-col items-start">
-              <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">
-                Kheti
-                <span className="text-green-600 dark:text-green-500">
-                  Hisab
-                </span>
-              </h1>
-              <p className="text-[7.5px] font-black uppercase tracking-[0.25em] text-muted-foreground mt-1.5 flex items-center gap-1 opacity-60">
-                <Terminal size={8} strokeWidth={3} className="text-primary" />
-                Created By SHUBHAM TUPE
-              </p>
-            </div>
-          </Link>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2.5 rounded-2xl bg-card text-foreground border border-border transition-all shadow-sm hover:border-primary/30 active:scale-90"
-              aria-label="Settings"
-            >
-              <Settings size={22} strokeWidth={2.5} />
-            </button>
-            <Link
-              to="/profile"
-              className="p-2.5 rounded-2xl bg-card text-foreground border border-border transition-all shadow-sm hover:border-primary/30 active:scale-90"
-            >
-              <User size={22} strokeWidth={2.5} />
+        <header className="bg-card/80 backdrop-blur-md text-foreground p-4 border-b border-border fixed top-0 left-0 right-0 z-40 flex items-center justify-between">
+          <div className="max-w-md mx-auto w-full flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-3">
+              <img
+                src="/app_logo.svg"
+                alt="Logo"
+                className="h-10 w-10 object-contain rounded-lg shadow-sm"
+              />
+              <div className="flex flex-col items-start">
+                <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">
+                  Kheti
+                  <span className="text-green-600 dark:text-green-500">
+                    Hisab
+                  </span>
+                </h1>
+                <p className="text-[7.5px] font-black uppercase tracking-[0.25em] text-muted-foreground mt-1.5 flex items-center gap-1 opacity-60">
+                  <Terminal size={8} strokeWidth={3} className="text-primary" />
+                  Created By SHUBHAM TUPE
+                </p>
+              </div>
             </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="p-2.5 rounded-2xl bg-card text-foreground border border-border transition-all shadow-sm hover:border-primary/30 active:scale-90"
+                aria-label="Settings"
+              >
+                <Settings size={22} strokeWidth={2.5} />
+              </button>
+              <Link
+                to="/profile"
+                className="p-2.5 rounded-2xl bg-card text-foreground border border-border transition-all shadow-sm hover:border-primary/30 active:scale-90"
+              >
+                <User size={22} strokeWidth={2.5} />
+              </Link>
+            </div>
           </div>
         </header>
       )}
@@ -116,7 +118,7 @@ const AppContent = () => {
         />
       )}
 
-      <main className={`p-4 max-w-md mx-auto ${isAuthPage ? "pt-0" : ""}`}>
+      <main className={`p-4 max-w-md mx-auto ${isAuthPage ? "pt-0" : "pt-24"}`}>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginScreen />} />
